@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: ms-necesidades-route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/necesidades/**
+        - id: ms-donaciones
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/donaciones/**
+        - id: ms-logistica
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/logistica/**
+
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: necesidadesCB
+                fallbackUri: forward:/fallback/necesidades
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
