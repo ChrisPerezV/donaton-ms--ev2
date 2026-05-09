@@ -23,9 +23,9 @@ Instalación y Configuración
 
 1. Clonar el repositorio
 
-Abriendo una consola de windows (CMD)
-it clone https://github.com/ChrisPerezV/donaton-ms--ev2.git
-cd donaton-ms--ev2
+- Abriendo una consola de windows (CMD)
+- git clone https://github.com/ChrisPerezV/donaton-ms--ev2.git
+- cd donaton-ms--ev2
 
 2. Creación de BD
 
@@ -33,29 +33,29 @@ Para levantar las bases de datos de forma automática, asegúrese de tener Docke
 
 - Verificar funcionamiento de docker en el equipo
 - Dirigirse a la ruta en la cual se clonó el proyecto:
-cd donaton-ms--ev2
+- cd donaton-ms--ev2
 - Dirigirse a carpeta de configuración de docker:
-cd donaton-infra
+- cd donaton-infra
 - Ejecutar comando:
-docker-compose up -d
+- docker-compose up -d
 - Se incializan contenedores docker con Mysql con bases de datos para el proyecto
 
 3. Compilación del Proyecto
 Ejecute el siguiente comando en la raíz de cada microservicio o en la carpeta principal:
 
-Abriendo una consola de windows(CMD)
-mvnw clean install
+- Abriendo una consola de windows(CMD)
+- mvnw clean install
 
 Orden de Ejecución
-Para asegurar que la comunicación entre servicios funcione correctamente, inicie los componentes en este orden:
+- Para asegurar que la comunicación entre servicios funcione correctamente, inicie los componentes en este orden:
 
-API Gateway (Puerto 8080)
+- API Gateway (Puerto 8080)
 
-MS Necesidades (Puerto 8082)
+- MS Necesidades (Puerto 8082)
 
-MS Logística (Puerto 8084)
+- MS Logística (Puerto 8084)
 
-MS Donaciones (Puerto 8083)
+- MS Donaciones (Puerto 8083)
 
 4. Pruebas de Endpoints (Postman)
 Todas las peticiones deben dirigirse al API Gateway (8080).
@@ -80,12 +80,12 @@ JSON
     ]
 }
 - Registrar Centro de Acopio y Cargar Stock
-POST http://localhost:8080/api/v1/logistica/centros-acopio
+- POST http://localhost:8080/api/v1/logistica/centros-acopio
 
-POST http://localhost:8080/api/v1/logistica/inventario/cargar
+- POST http://localhost:8080/api/v1/logistica/inventario/cargar
 
 - Registrar Donación (Entrada a Bodega)
-POST http://localhost:8080/api/v1/donaciones
+- POST http://localhost:8080/api/v1/donaciones
 
 JSON
 {
@@ -102,6 +102,6 @@ JSON
     ]
 }
 - Crear Despacho y Entrega (Cierre del Ciclo)
-POST http://localhost:8080/api/v1/logistica/despachos
+- POST http://localhost:8080/api/v1/logistica/despachos
 
-PUT http://localhost:8080/api/v1/logistica/despachos/{id}/estado?nuevoEstado=ENTREGADO
+- PUT http://localhost:8080/api/v1/logistica/despachos/{id}/estado?nuevoEstado=ENTREGADO
