@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-microservicios
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: donaton_user
+      MYSQL_PASSWORD: donaton_password
+      TZ: America/Santiago # Configuración horaria vital para las fechas de los registros
+    ports:
+      - "3306:3306"
+    volumes:
+      # Persistencia de datos: Evita que se borre todo si apagas el contenedor
+      - mysql_data:/var/lib/mysql
+      # Script de inicialización automática
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+volumes:
+  mysql_data:
