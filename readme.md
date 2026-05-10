@@ -60,48 +60,74 @@ Orden de Ejecución
 4. Pruebas de Endpoints (Postman)
 Todas las peticiones deben dirigirse al API Gateway (8080).
 
-- Crear una Necesidad
-POST http://localhost:8080/api/v1/necesidades
-
-JSON
-{
-    "idUsuarioCreador": "admin123",
-    "tituloEmergencia": "Incendio en Valparaíso",
-    "idComuna": 5101,
-    "direccionEspecifica": "Cerro San Roque",
-    "items": [
-        {
-            "categoria": "AGUA",
-            "descripcionItem": "Agua embotellada 1.5L",
-            "cantidadRequerida": 100,
-            "unidadMedida": "UNIDADES",
-            "prioridad": "ALTA_URGENCIA"
-        }
-    ]
-}
-- Registrar Centro de Acopio y Cargar Stock
+- Crear un Centro de acopio
 - POST http://localhost:8080/api/v1/logistica/centros-acopio
 
-- POST http://localhost:8080/api/v1/logistica/inventario/cargar
+JSON
+{
+    "nombre": "Gimnasio Las Palmas",
+    "direccion": "Av. Los Alamos 1234",
+    "idComuna": 5101,
+    "capacidadMaximaKilos": 500
+}
 
-- Registrar Donación (Entrada a Bodega)
-- POST http://localhost:8080/api/v1/donaciones
+- Crear una Necesidad
+- POST http://localhost:8080/api/v1/necesidades
 
 JSON
 {
-    "idDonante": "12345678-9",
-    "tipoDonacion": "ESPECIE",
-    "idCentroAcopio": "ID_DEL_CENTRO",
+    "idUsuarioCreador": "usr-12345",
+    "tituloEmergencia": "Inundación en sector sur",
+    "idComuna": 5101,
+    "direccionEspecifica": "Calle los Patos 123",
     "items": [
         {
             "categoria": "AGUA",
-            "descripcionItem": "Pack de 6 aguas",
-            "cantidad": 50,
-            "unidadMedida": "UNIDADES"
+            "descripcionItem": "Agua Purificada",
+            "cantidadRequerida": 100,
+            "unidadMedida": "LITROS",
+            "prioridad": "ALTA_URGENCIA"
+        },
+        {
+            "categoria": "ROPA",
+            "descripcionItem": "Polera",
+            "cantidadRequerida": 100,
+            "unidadMedida": "UNIDADES",
+            "prioridad": "MEDIA"
         }
     ]
 }
-- Crear Despacho y Entrega (Cierre del Ciclo)
+- Donar al centro de acopio
+- POST http://localhost:8080/api/v1/donaciones
+{
+    "idDonante": "204894736",
+    "tipoDonacion": "ESPECIE",
+    "idCentroAcopio": "ID_DEL_CENTRO_DE_ACOPIO",
+    "items": [
+        {
+            "categoria": "AGUA",
+            "cantidad": 50,
+            "descripcionItem": "Botellones de agua purificada",
+            "unidadMedida": "LITROS"
+        }
+    ]
+}
+
+- Crear Despacho (Al crear el despacho en curso se resta del centro de acopio distribuido, pero aun no se entrega a la necesidad)
 - POST http://localhost:8080/api/v1/logistica/despachos
 
-- PUT http://localhost:8080/api/v1/logistica/despachos/{id}/estado?nuevoEstado=ENTREGADO
+JSON
+{
+    "idCentroOrigen": "ID_DEL_CENTRO_DE_ACOPIO",
+    "idNecesidadDestino": "ID_DEL_CENTRO_DE_LA_NECESIDAD",
+    "patenteVehiculo": "AB-CD-12",
+    "items": [
+        {
+            "categoria": "AGUA",
+            "cantidad": 50
+        }
+    ]
+}
+
+- Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item)
+- PUT http://localhost:8080/api/v1/logistica/despachos/{ID_DEL_DESPACHO}/estado?nuevoEstado=ENTREGADO
