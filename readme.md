@@ -68,7 +68,8 @@ Para asegurar que la comunicación entre servicios funcione correctamente, inici
 4. Pruebas de Endpoints (Postman)
 Todas las peticiones deben dirigirse al API Gateway (8080).
 
-Crear un Centro de acopio
+Crear un Centro de acopio.
+
 POST.
 ```
 http://localhost:8080/api/v1/logistica/centros-acopio
@@ -82,7 +83,13 @@ JSON
     "capacidadMaximaKilos": 500
 }
 ```
+GET (Para obtener el ID del centro de acopio, se muestra de igual manera al realizar un POST).
+```
+http://localhost:8080/api/v1/logistica/centros-acopio
+```
+
 Crear una Necesidad.
+
 POST.
 ```
 http://localhost:8080/api/v1/necesidades
@@ -113,8 +120,13 @@ JSON.
     ]
 }
 ```
+GET (Para obtener el ID de la necesidad, se muestra de igual manera al realizar un POST).
+```
+http://localhost:8080/api/v1/necesidades
+```
 
 Donar al centro de acopio.
+
 POST.
 ```
 http://localhost:8080/api/v1/donaciones
@@ -135,6 +147,10 @@ JSON.
     ]
 }
 ```
+GET (Para obtener el ID de la donación, se muestra de igual manera al realizar un POST).
+```
+http://localhost:8080/api/v1/donaciones
+```
 
 Crear Despacho (Al crear el despacho en curso se resta del centro de acopio distribuido, pero aun no se entrega a la necesidad).
 
@@ -147,7 +163,7 @@ JSON.
 ```
 {
     "idCentroOrigen": "ID_DEL_CENTRO_DE_ACOPIO",
-    "idNecesidadDestino": "ID_DEL_CENTRO_DE_LA_NECESIDAD",
+    "idNecesidadDestino": "ID_DE_LA_NECESIDAD_DESTINO",
     "patenteVehiculo": "AB-CD-12",
     "items": [
         {
@@ -158,7 +174,12 @@ JSON.
 }
 ```
 
-Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item).
+GET (Para obtener el ID del despacho, se muestra de igual manera al realizar un POST).
+```
+http://localhost:8080/api/v1/logistica/despachos
+```
+
+Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item / ingresar ID del despacho a la ruta de PUT).
 
 PUT.
 ```
