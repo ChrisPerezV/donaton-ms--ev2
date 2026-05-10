@@ -53,7 +53,7 @@ Ejecute el siguiente comando en la raíz de cada microservicio.
 
 Abriendo una consola de windows(CMD).
 ```
-mvnw clean install
+mvnw clean package
 ```
 Para asegurar que la comunicación entre servicios funcione correctamente, inicie los componentes en este orden.
 
@@ -70,7 +70,7 @@ Todas las peticiones deben dirigirse al API Gateway (8080).
 
 Crear un Centro de acopio.
 
-POST.
+POST
 ```
 http://localhost:8080/api/v1/logistica/centros-acopio
 ```
@@ -83,19 +83,19 @@ JSON
     "capacidadMaximaKilos": 500
 }
 ```
-GET (Para obtener el ID del centro de acopio, se muestra de igual manera al realizar un POST).
+GET (Para obtener el ID del centro de acopio, se muestra de igual manera al realizar un POST)
 ```
 http://localhost:8080/api/v1/logistica/centros-acopio
 ```
 
 Crear una Necesidad.
 
-POST.
+POST
 ```
 http://localhost:8080/api/v1/necesidades
 ```
 
-JSON.
+JSON
 ```
 {
     "idUsuarioCreador": "usr-12345",
@@ -120,18 +120,18 @@ JSON.
     ]
 }
 ```
-GET (Para obtener el ID de la necesidad, se muestra de igual manera al realizar un POST).
+GET (Para obtener el ID de la necesidad, se muestra de igual manera al realizar un POST)
 ```
 http://localhost:8080/api/v1/necesidades
 ```
 
 Donar al centro de acopio.
 
-POST.
+POST
 ```
 http://localhost:8080/api/v1/donaciones
 ```
-JSON.
+JSON
 ```
 {
     "idDonante": "204894736",
@@ -147,19 +147,19 @@ JSON.
     ]
 }
 ```
-GET (Para obtener el ID de la donación, se muestra de igual manera al realizar un POST).
+GET (Para obtener el ID de la donación, se muestra de igual manera al realizar un POST)
 ```
 http://localhost:8080/api/v1/donaciones
 ```
 
 Crear Despacho (Al crear el despacho en curso se resta del centro de acopio distribuido, pero aun no se entrega a la necesidad).
 
-POST.
+POST
 ```
 http://localhost:8080/api/v1/logistica/despachos
 ```
 
-JSON.
+JSON
 ```
 {
     "idCentroOrigen": "ID_DEL_CENTRO_DE_ACOPIO",
@@ -174,14 +174,14 @@ JSON.
 }
 ```
 
-GET (Para obtener el ID del despacho, se muestra de igual manera al realizar un POST).
+GET (Para obtener el ID del despacho, se muestra de igual manera al realizar un POST)
 ```
 http://localhost:8080/api/v1/logistica/despachos
 ```
 
 Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item / ingresar ID del despacho a la ruta de PUT).
 
-PUT.
+PUT
 ```
-http://localhost:8080/api/v1/logistica/despachos/{ID_DEL_DESPACHO}/estado?nuevoEstado=ENTREGADO
+http://localhost:8080/api/v1/logistica/despachos/ID_DEL_DESPACHO/estado?nuevoEstado=ENTREGADO
 ```
