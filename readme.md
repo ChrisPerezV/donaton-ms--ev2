@@ -1,5 +1,6 @@
-Requisitos Previos
+# Proyecto Donaton
 
+## Requisitos Previos
 Para ejecutar este proyecto localmente, asegurar de tener instalado:
 
 - Java 21
@@ -8,7 +9,7 @@ Para ejecutar este proyecto localmente, asegurar de tener instalado:
 - MySQL Server
 - Postman
 
-Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 - Java 21
 - Spring Boot
@@ -19,35 +20,42 @@ Tecnologías Utilizadas
 - Lombok
 - Resilience4j
 
-Instalación y Configuración
+## Instalación y Configuración
 
-1. Clonar el repositorio
+1. Clonar el repositorio.
 
-- Abriendo una consola de windows (CMD)
-- git clone https://github.com/ChrisPerezV/donaton-ms--ev2.git
-- cd donaton-ms--ev2
+Abriendo una consola de windows (CMD)
+```
+git clone https://github.com/ChrisPerezV/donaton-ms--ev2.git
+```
 
-2. Creación de BD
+2. Creación de BD.
 
-Para levantar las bases de datos de forma automática, asegúrese de tener Docker Desktop iniciado y ejecute:
+Para levantar las bases de datos de forma automática, asegúrese de tener Docker Desktop iniciado y ejecute.
 
-- Verificar funcionamiento de docker en el equipo
-- Dirigirse a la ruta en la cual se clonó el proyecto:
-- cd donaton-ms--ev2
-- Dirigirse a carpeta de configuración de docker:
-- cd donaton-infra
-- Ejecutar comando:
-- docker-compose up -d
-- Se incializan contenedores docker con Mysql con bases de datos para el proyecto
+Verificar funcionamiento de docker en el equipo.
+Dirigirse a la ruta en la cual se clonó el proyecto.
+```
+cd donaton-ms--ev2
+```
+Dirigirse a carpeta de configuración de docker.
+```
+cd donaton-infra
+```
+Ejecutar comando.
+```
+docker-compose up -d
+```
+Se incializan contenedores docker con Mysql con bases de datos para el proyecto.
 
 3. Compilación del Proyecto
-Ejecute el siguiente comando en la raíz de cada microservicio o en la carpeta principal:
+Ejecute el siguiente comando en la raíz de cada microservicio.
 
-- Abriendo una consola de windows(CMD)
-- mvnw clean install
-
-Orden de Ejecución
-- Para asegurar que la comunicación entre servicios funcione correctamente, inicie los componentes en este orden:
+Abriendo una consola de windows(CMD).
+```
+mvnw clean install
+```
+Para asegurar que la comunicación entre servicios funcione correctamente, inicie los componentes en este orden.
 
 - API Gateway (Puerto 8080)
 
@@ -60,17 +68,20 @@ Orden de Ejecución
 4. Pruebas de Endpoints (Postman)
 Todas las peticiones deben dirigirse al API Gateway (8080).
 
-- Crear un Centro de acopio
-- POST http://localhost:8080/api/v1/logistica/centros-acopio
-
-JSON
+Crear un Centro de acopio.
+POST 
+```
+http://localhost:8080/api/v1/logistica/centros-acopio
+```
+JSON.
+```
 {
     "nombre": "Gimnasio Las Palmas",
     "direccion": "Av. Los Alamos 1234",
     "idComuna": 5101,
     "capacidadMaximaKilos": 500
 }
-
+```
 - Crear una Necesidad
 - POST http://localhost:8080/api/v1/necesidades
 
