@@ -68,12 +68,12 @@ Para asegurar que la comunicación entre servicios funcione correctamente, inici
 4. Pruebas de Endpoints (Postman)
 Todas las peticiones deben dirigirse al API Gateway (8080).
 
-Crear un Centro de acopio.
-POST 
+Crear un Centro de acopio
+POST.
 ```
 http://localhost:8080/api/v1/logistica/centros-acopio
 ```
-JSON.
+JSON
 ```
 {
     "nombre": "Gimnasio Las Palmas",
@@ -82,10 +82,14 @@ JSON.
     "capacidadMaximaKilos": 500
 }
 ```
-- Crear una Necesidad
-- POST http://localhost:8080/api/v1/necesidades
+Crear una Necesidad.
+POST.
+```
+http://localhost:8080/api/v1/necesidades
+```
 
-JSON
+JSON.
+```
 {
     "idUsuarioCreador": "usr-12345",
     "tituloEmergencia": "Inundación en sector sur",
@@ -108,8 +112,15 @@ JSON
         }
     ]
 }
-- Donar al centro de acopio
-- POST http://localhost:8080/api/v1/donaciones
+```
+
+Donar al centro de acopio.
+POST.
+```
+http://localhost:8080/api/v1/donaciones
+```
+JSON.
+```
 {
     "idDonante": "204894736",
     "tipoDonacion": "ESPECIE",
@@ -123,11 +134,17 @@ JSON
         }
     ]
 }
+```
 
-- Crear Despacho (Al crear el despacho en curso se resta del centro de acopio distribuido, pero aun no se entrega a la necesidad)
-- POST http://localhost:8080/api/v1/logistica/despachos
+Crear Despacho (Al crear el despacho en curso se resta del centro de acopio distribuido, pero aun no se entrega a la necesidad).
 
-JSON
+POST.
+```
+http://localhost:8080/api/v1/logistica/despachos
+```
+
+JSON.
+```
 {
     "idCentroOrigen": "ID_DEL_CENTRO_DE_ACOPIO",
     "idNecesidadDestino": "ID_DEL_CENTRO_DE_LA_NECESIDAD",
@@ -139,6 +156,11 @@ JSON
         }
     ]
 }
+```
 
-- Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item)
-- PUT http://localhost:8080/api/v1/logistica/despachos/{ID_DEL_DESPACHO}/estado?nuevoEstado=ENTREGADO
+Modificar despacho para entrega (Al cambiar estado de entrega a "ENTREGADO", se suma la cantidad al centro de acopio del respectivo item).
+
+PUT.
+```
+http://localhost:8080/api/v1/logistica/despachos/{ID_DEL_DESPACHO}/estado?nuevoEstado=ENTREGADO
+```
