@@ -7,8 +7,15 @@ spring:
   cloud:
     gateway:
       routes:
+        # 1. RUTA DE USUARIOS (El guardia de seguridad)
+        - id: ms-usuarios-route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/v1/usuarios/**
+
+        # 2. RUTA DE NECESIDADES
         - id: ms-necesidades-route
-          uri: http://ms-necesidades:8082
+          uri: http://localhost:8082
           predicates:
             - Path=/api/v1/necesidades/**
           filters:
@@ -17,8 +24,9 @@ spring:
                 name: necesidadesCB
                 fallbackUri: forward:/fallback/necesidades
 
+        # 3. RUTA DE DONACIONES
         - id: ms-donaciones-route
-          uri: http://ms-donaciones:8083
+          uri: http://localhost:8083
           predicates:
             - Path=/api/v1/donaciones/**
           filters:
@@ -27,15 +35,11 @@ spring:
                 name: donacionesCB
                 fallbackUri: forward:/fallback/donaciones
 
+        # 4. RUTA DE LOGISTICA
         - id: ms-logistica-route
-          uri: http://ms-logistica:8084
+          uri: http://localhost:8084
           predicates:
             - Path=/api/v1/logistica/**
-        - id: ms-usuarios
-          uri: http://localhost:8085
-          predicates:
-            - Path=/api/v1/usuarios/**
-
           filters:
             - name: CircuitBreaker
               args:
