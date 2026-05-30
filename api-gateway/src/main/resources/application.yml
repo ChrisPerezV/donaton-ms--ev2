@@ -8,23 +8,34 @@ spring:
     gateway:
       routes:
         - id: ms-necesidades-route
-          uri: http://localhost:8082
+          uri: http://ms-necesidades:8082
           predicates:
             - Path=/api/v1/necesidades/**
-        - id: ms-donaciones
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/v1/donaciones/**
-        - id: ms-logistica
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/v1/logistica/**
-
           filters:
             - name: CircuitBreaker
               args:
                 name: necesidadesCB
                 fallbackUri: forward:/fallback/necesidades
+
+        - id: ms-donaciones-route
+          uri: http://ms-donaciones:8083
+          predicates:
+            - Path=/api/v1/donaciones/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: donacionesCB
+                fallbackUri: forward:/fallback/donaciones
+
+        - id: ms-logistica-route
+          uri: http://ms-logistica:8084
+          predicates:
+            - Path=/api/v1/logistica/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: logisticaCB
+                fallbackUri: forward:/fallback/logistica
 
 resilience4j:
   circuitbreaker:
@@ -33,3 +44,10 @@ resilience4j:
         slidingWindowSize: 10
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
+    instances:
+      necesidadesCB:
+        baseConfig: default
+      donacionesCB:
+        baseConfig: default
+      logisticaCB:
+        baseConfig: default
