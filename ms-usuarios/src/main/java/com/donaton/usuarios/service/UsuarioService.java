@@ -5,13 +5,18 @@ import com.donaton.usuarios.dto.UsuarioRegistroRequest;
 import com.donaton.usuarios.model.entity.Usuario;
 import com.donaton.usuarios.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class UsuarioService {
 
     @Autowired
     private UsuarioRepository repository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public Usuario registrarUsuario(UsuarioRegistroRequest request) {
         if (repository.existsByEmail(request.getEmail())) {
@@ -25,7 +30,7 @@ public class UsuarioService {
         usuario.setDocumentoIdentidad(request.getDocumentoIdentidad());
         usuario.setNombreCompleto(request.getNombreCompleto());
         usuario.setEmail(request.getEmail());
-        usuario.setPassword(request.getPassword()); // Sin encriptar por ahora
+        usuario.setPassword(passwordEncoder.encode(request.getPassword()));
         usuario.setRol(request.getRol());
         usuario.setTipoDonante(request.getTipoDonante());
 
@@ -36,7 +41,7 @@ public class UsuarioService {
         Usuario usuario = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
 
-        if (!usuario.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta.");
         }
 

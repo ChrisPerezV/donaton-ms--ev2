@@ -4,6 +4,8 @@ import com.donaton.usuarios.dto.LoginRequest;
 import com.donaton.usuarios.dto.UsuarioRegistroRequest;
 import com.donaton.usuarios.model.entity.Usuario;
 import com.donaton.usuarios.service.UsuarioService;
+import com.donaton.usuarios.dto.AuthResponse;
+import com.donaton.usuarios.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,9 @@ public class UsuarioController {
     @Autowired
     private UsuarioService service;
 
+    @Autowired
+    private JwtService jwtService;
+
     @PostMapping("/registro")
     public ResponseEntity<Usuario> registrar(@Valid @RequestBody UsuarioRegistroRequest request) {
         Usuario nuevoUsuario = service.registrarUsuario(request);
@@ -24,9 +29,13 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Usuario> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        // 1. Validamos credenciales (el servicio lanza excepción si falla)
         Usuario usuario = service.iniciarSesion(request);
-        return ResponseEntity.ok(usuario);
+        // 2. Si es correcto generamos token
+        String token = jwtService.generarToken(usuario);
+        // 3. Devolvemos el Token al usuario
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @GetMapping("/{id}")
