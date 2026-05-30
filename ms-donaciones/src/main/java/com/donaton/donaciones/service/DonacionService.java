@@ -1,6 +1,7 @@
 package com.donaton.donaciones.service;
 
 import com.donaton.donaciones.client.LogisticaClient;
+import com.donaton.donaciones.client.UsuariosClient;
 import com.donaton.donaciones.dto.DonacionRequest;
 import com.donaton.donaciones.dto.InventarioCargaRequest;
 import com.donaton.donaciones.dto.ItemDonacionRequest;
@@ -22,7 +23,17 @@ public class DonacionService {
     @Autowired
     private LogisticaClient logisticaClient;
 
+    @Autowired
+    private UsuariosClient usuariosClient;
+
     public Donacion crearConItems(DonacionRequest request) {
+        try {
+            usuariosClient.obtenerUsuarioPorId(request.getIdDonante());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error: El usuario donante (ID: " + request.getIdDonante() + ") no existe en el sistema.");
+        }
+
         Donacion donacion = new Donacion();
         donacion.setIdDonante(request.getIdDonante());
         donacion.setTipoDonacion(request.getTipoDonacion());

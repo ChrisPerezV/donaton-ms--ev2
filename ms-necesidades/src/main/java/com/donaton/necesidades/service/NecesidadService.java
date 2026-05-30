@@ -1,5 +1,6 @@
 package com.donaton.necesidades.service;
 
+import com.donaton.necesidades.client.UsuariosClient;
 import com.donaton.necesidades.dto.ItemNecesidadRequest;
 import com.donaton.necesidades.dto.NecesidadRequest;
 import com.donaton.necesidades.model.entity.ItemNecesidad;
@@ -16,8 +17,21 @@ public class NecesidadService {
     @Autowired
     private NecesidadRepository repository;
 
+    @Autowired
+    private UsuariosClient usuariosClient;
+
     // Crear Necesidad con Ítems (Mapeo de DTO a Entidad)
     public Necesidad crearConItems(NecesidadRequest request) {
+        try {
+            usuariosClient.obtenerUsuarioPorId(request.getIdUsuarioCreador());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error: El usuario creador (ID: " + request.getIdUsuarioCreador() + ") no existe en el sistema.");
+        }
+
+        Necesidad necesidad = new Necesidad();
+        necesidad.setIdUsuarioCreador(request.getIdUsuarioCreador());
+        necesidad.setTituloEmergencia(request.getTituloEmergencia());
         Necesidad n = new Necesidad();
         n.setIdUsuarioCreador(request.getIdUsuarioCreador());
         n.setTituloEmergencia(request.getTituloEmergencia());

@@ -31,6 +31,11 @@ spring:
           uri: http://ms-logistica:8084
           predicates:
             - Path=/api/v1/logistica/**
+        - id: ms-usuarios
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/v1/usuarios/**
+
           filters:
             - name: CircuitBreaker
               args:
