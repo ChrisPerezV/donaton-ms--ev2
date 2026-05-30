@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+
+  # ─────────────────────────────────────────────
+  # API Gateway  (listo para Docker)
+  # ─────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - donaton-net
+    # Espera a que los microservicios estén sanos antes de arrancar
+    depends_on:
+      ms-necesidades:
+        condition: service_started
+      ms-donaciones:
+        condition: service_started
+      ms-logistica:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Necesidades  (agrega su Dockerfile cuando esté listo)
+  # ─────────────────────────────────────────────
+  ms-necesidades:
+    build:
+      context: ./ms-necesidades
+      dockerfile: Dockerfile        # Crea este archivo cuando dockerices ms-necesidades
+    container_name: ms-necesidades
+    expose:
+      - "8082"
+    networks:
+      - donaton-net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Donaciones
+  # ─────────────────────────────────────────────
+  ms-donaciones:
+    build:
+      context: ./ms-donaciones
+      dockerfile: Dockerfile
+    container_name: ms-donaciones
+    expose:
+      - "8083"
+    networks:
+      - donaton-net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Logística
+  # ─────────────────────────────────────────────
+  ms-logistica:
+    build:
+      context: ./ms-logistica
+      dockerfile: Dockerfile
+    container_name: ms-logistica
+    expose:
+      - "8084"
+    networks:
+      - donaton-net
+    restart: unless-stopped
+
+# Red interna compartida por todos los servicios
+networks:
+  donaton-net:
+    driver: bridge
