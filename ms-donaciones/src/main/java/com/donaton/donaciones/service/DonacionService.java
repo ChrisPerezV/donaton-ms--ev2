@@ -7,16 +7,16 @@ import com.donaton.donaciones.dto.InventarioCargaRequest;
 import com.donaton.donaciones.dto.ItemDonacionRequest;
 import com.donaton.donaciones.model.entity.Donacion;
 import com.donaton.donaciones.model.entity.ItemDonacion;
-import com.donaton.donaciones.model.enums.UnidadMedida; // <-- Import limpio
+import com.donaton.donaciones.model.enums.UnidadMedida;
 import com.donaton.donaciones.repository.DonacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 public class DonacionService {
 
+    // Eliminé la inyección duplicada. Solo necesitas uno.
     @Autowired
     private DonacionRepository repository;
 
@@ -37,6 +37,11 @@ public class DonacionService {
         Donacion donacion = new Donacion();
         donacion.setIdDonante(request.getIdDonante());
         donacion.setTipoDonacion(request.getTipoDonacion());
+
+        // --- ¡AQUÍ ESTABA EL ESLABÓN PERDIDO! ---
+        // Debes guardar el ID del centro en tu entidad para que se guarde en PostgreSQL
+        donacion.setIdCentroAcopio(request.getIdCentroAcopio());
+        // -----------------------------------------
 
         for (ItemDonacionRequest itemDto : request.getItems()) {
             ItemDonacion item = new ItemDonacion();
@@ -62,7 +67,6 @@ public class DonacionService {
 
                 // Extraemos el nombre del Enum para mandarlo a Logística
                 carga.setUnidadMedida(item.getUnidadMedida().name());
-
                 carga.setIdCentro(request.getIdCentroAcopio());
 
                 try {
@@ -79,5 +83,10 @@ public class DonacionService {
 
     public List<Donacion> obtenerTodas() {
         return repository.findAll();
+    }
+
+    public List<Donacion> obtenerDonacionesPorDonante(String idDonante) {
+        // Usamos la misma instancia de repository aquí
+        return repository.findByIdDonante(idDonante);
     }
 }

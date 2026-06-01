@@ -3,8 +3,8 @@ package com.donaton.logistica.service;
 import com.donaton.logistica.dto.InventarioRequest;
 import com.donaton.logistica.model.entity.CentroAcopio;
 import com.donaton.logistica.model.entity.Inventario;
-import com.donaton.logistica.repository.CentroAcopioRepository;
 import com.donaton.logistica.repository.InventarioRepository;
+import com.donaton.logistica.repository.CentroAcopioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ import java.util.List;
 public class InventarioService {
 
     @Autowired
-    private InventarioRepository inventarioRepo;
+    private InventarioRepository inventarioRepo; // Dejamos solo este
 
     @Autowired
     private CentroAcopioRepository centroRepo;
@@ -41,5 +41,10 @@ public class InventarioService {
         }
 
         return inventarioRepo.save(item);
+    }
+
+    // Usamos el inventarioRepo que ya teníamos arriba
+    public List<Inventario> obtenerInventarioPorCentro(String idCentroAcopio) {
+        return inventarioRepo.findByCentroAcopioId(idCentroAcopio);
     }
 }

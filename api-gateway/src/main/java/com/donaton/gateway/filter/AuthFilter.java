@@ -21,8 +21,10 @@ public class AuthFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        if (exchange.getRequest().getMethod().name().equals("OPTIONS")) {
+            return chain.filter(exchange);
+        }
         String path = exchange.getRequest().getURI().getPath();
-
         // 1. Dejar pasar libremente las rutas de login y registro
         if (path.contains("/api/v1/usuarios/registro") || path.contains("/api/v1/usuarios/login")) {
             return chain.filter(exchange);

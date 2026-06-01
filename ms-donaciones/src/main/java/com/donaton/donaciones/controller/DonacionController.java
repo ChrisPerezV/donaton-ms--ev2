@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -27,5 +26,13 @@ public class DonacionController {
     @GetMapping
     public ResponseEntity<List<Donacion>> listarTodas() {
         return ResponseEntity.ok(service.obtenerTodas());
+    }
+
+    @GetMapping("/usuario/{idDonante}")
+    public ResponseEntity<List<Donacion>> obtenerMisDonaciones(@PathVariable String idDonante) {
+        List<Donacion> historial = service.obtenerDonacionesPorDonante(idDonante);
+
+        // Si la lista está vacía o tiene datos, devolvemos un 200 OK con la lista
+        return ResponseEntity.ok(historial);
     }
 }

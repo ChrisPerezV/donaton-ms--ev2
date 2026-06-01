@@ -27,6 +27,9 @@ public class Donacion {
     @Column(name = "id_donante", nullable = false)
     private String idDonante;
 
+    @Column(name = "id_centro_acopio")
+    private String idCentroAcopio;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_donacion", nullable = false)
     private TipoDonacion tipoDonacion;

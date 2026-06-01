@@ -9,4 +9,5 @@ import java.util.List;
 public interface InventarioRepository extends JpaRepository<Inventario, String> {
     // Método para buscar qué hay en una bodega específica
     List<Inventario> findByCentroAcopioId(String idCentro);
+
 }

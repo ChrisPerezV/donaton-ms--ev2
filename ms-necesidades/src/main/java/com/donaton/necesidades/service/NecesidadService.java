@@ -29,14 +29,12 @@ public class NecesidadService {
             throw new RuntimeException("Error: El usuario creador (ID: " + request.getIdUsuarioCreador() + ") no existe en el sistema.");
         }
 
+        // Se unificó la creación de la entidad Necesidad
         Necesidad necesidad = new Necesidad();
         necesidad.setIdUsuarioCreador(request.getIdUsuarioCreador());
         necesidad.setTituloEmergencia(request.getTituloEmergencia());
-        Necesidad n = new Necesidad();
-        n.setIdUsuarioCreador(request.getIdUsuarioCreador());
-        n.setTituloEmergencia(request.getTituloEmergencia());
-        n.setIdComuna(request.getIdComuna());
-        n.setDireccionEspecifica(request.getDireccionEspecifica());
+        necesidad.setIdComuna(request.getIdComuna());
+        necesidad.setDireccionEspecifica(request.getDireccionEspecifica());
 
         for (ItemNecesidadRequest itemDto : request.getItems()) {
             ItemNecesidad item = new ItemNecesidad();
@@ -46,10 +44,10 @@ public class NecesidadService {
             item.setUnidadMedida(itemDto.getUnidadMedida());
             item.setPrioridad(itemDto.getPrioridad());
 
-            n.agregarItem(item);
+            necesidad.agregarItem(item);
         }
 
-        return repository.save(n);
+        return repository.save(necesidad);
     }
 
     // Obtener todas
@@ -63,12 +61,17 @@ public class NecesidadService {
                 .orElseThrow(() -> new RuntimeException("Necesidad no encontrada en la BD"));
     }
 
+    // Actualizar Estado General de la Emergencia
     public Necesidad actualizarEstado(String id, String nuevoEstado) {
         Necesidad necesidad = obtenerPorId(id);
-        necesidad.setEstado(nuevoEstado);
+
+        // Agregamos toUpperCase() para mantener consistencia en la BD
+        necesidad.setEstado(nuevoEstado.toUpperCase());
+
         return repository.save(necesidad);
     }
 
+    // Eliminar (Borrado lógico)
     public void eliminarNecesidad(String id) {
         Necesidad necesidad = obtenerPorId(id);
         necesidad.setEstadoRegistro("ELIMINADO");

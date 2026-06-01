@@ -2,6 +2,7 @@ package com.donaton.logistica.service;
 
 import com.donaton.logistica.dto.CentroAcopioRequest;
 import com.donaton.logistica.model.entity.CentroAcopio;
+import com.donaton.logistica.model.enums.EstadoCentro;
 import com.donaton.logistica.repository.CentroAcopioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,6 @@ public class CentroAcopioService {
         centro.setNombre(request.getNombre());
         centro.setDireccion(request.getDireccion());
         centro.setIdComuna(request.getIdComuna());
-        centro.setCapacidadMaximaKilos(request.getCapacidadMaximaKilos());
 
         return repository.save(centro);
     }
@@ -27,10 +27,18 @@ public class CentroAcopioService {
     public List<CentroAcopio> obtenerTodos() {
         return repository.findAll();
     }
+
     public void eliminarCentro(String id) {
         if (!repository.existsById(id)) {
             throw new RuntimeException("No se puede eliminar: El ID del centro no existe.");
         }
         repository.deleteById(id);
+    }
+
+    public CentroAcopio cambiarEstado(String id, String nuevoEstado) {
+        CentroAcopio centro = repository.findById(id).orElseThrow(() -> new RuntimeException("Centro de acopio no encontrado"));
+        centro.setEstado(EstadoCentro.valueOf(nuevoEstado.toUpperCase()));
+
+        return repository.save(centro);
     }
 }

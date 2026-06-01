@@ -38,7 +38,7 @@ public class NecesidadController {
     }
 
     // Cambiar el estado de la emergencia (ej: de ACTIVA a CUBIERTA)
-    @PatchMapping("/{id}/estado")
+    @PutMapping("/{id}/estado")
     public ResponseEntity<Necesidad> cambiarEstado(@PathVariable String id, @RequestParam String nuevoEstado) {
         return ResponseEntity.ok(necesidadService.actualizarEstado(id, nuevoEstado));
     }

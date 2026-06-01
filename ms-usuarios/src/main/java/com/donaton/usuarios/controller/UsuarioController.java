@@ -30,12 +30,9 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        // 1. Validamos credenciales (el servicio lanza excepción si falla)
         Usuario usuario = service.iniciarSesion(request);
-        // 2. Si es correcto generamos token
         String token = jwtService.generarToken(usuario);
-        // 3. Devolvemos el Token al usuario
-        return ResponseEntity.ok(new AuthResponse(token));
+        return ResponseEntity.ok(new AuthResponse(token, usuario.getIdUsuario(), usuario.getRol().name()));
     }
 
     @GetMapping("/{id}")

@@ -35,4 +35,9 @@ public class CentroAcopioController {
         // Devolvemos 204 No Content, que es el estándar para borrados exitosos
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<CentroAcopio> cambiarEstado(@PathVariable String id, @RequestParam String estado) {
+        return ResponseEntity.ok(service.cambiarEstado(id, estado));
+    }
 }

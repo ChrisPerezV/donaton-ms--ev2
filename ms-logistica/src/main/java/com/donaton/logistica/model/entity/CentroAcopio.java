@@ -1,5 +1,6 @@
 package com.donaton.logistica.model.entity;
 
+import com.donaton.logistica.model.enums.EstadoCentro;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,8 +29,9 @@ public class CentroAcopio {
     @Column(name = "id_comuna", nullable = false)
     private Integer idComuna;
 
-    @Column(name = "capacidad_maxima_kilos")
-    private Integer capacidadMaximaKilos;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoCentro estado = EstadoCentro.ACTIVO;
 
     @OneToMany(mappedBy = "centroAcopio", cascade = CascadeType.ALL)
     @JsonManagedReference

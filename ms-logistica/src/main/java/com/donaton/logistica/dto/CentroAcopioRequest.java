@@ -16,8 +16,4 @@ public class CentroAcopioRequest {
 
     @NotNull(message = "El ID de la comuna es obligatorio")
     private Integer idComuna;
-
-    @NotNull(message = "Debes indicar la capacidad máxima en kilos")
-    @Min(value = 100, message = "La capacidad mínima de un centro debe ser de al menos 100 kilos")
-    private Integer capacidadMaximaKilos;
 }
