@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 // Apuntamos al puerto 8084 de Logística
-@FeignClient(name = "ms-logistica", url = "http://localhost:8084/api/v1/logistica/inventario")
+@FeignClient(name = "ms-logistica", url = "${URL_MS_LOGISTICA:http://localhost:8084}/api/v1/logistica/inventario")
 public interface LogisticaClient {
 
     @PostMapping("/cargar")

@@ -22,13 +22,13 @@ spring:
       routes:
         # 1. RUTA DE USUARIOS (El guardia de seguridad)
         - id: ms-usuarios-route
-          uri: http://localhost:8085
+          uri: ${URL_MS_USUARIOS:http://localhost:8085}
           predicates:
             - Path=/api/v1/usuarios/**
 
         # 2. RUTA DE NECESIDADES
         - id: ms-necesidades-route
-          uri: http://localhost:8082
+          uri: ${URL_MS_NECESIDADES:http://localhost:8082}
           predicates:
             - Path=/api/v1/necesidades/**
           filters:
@@ -39,7 +39,7 @@ spring:
 
         # 3. RUTA DE DONACIONES
         - id: ms-donaciones-route
-          uri: http://localhost:8083
+          uri: ${URL_MS_DONACIONES:http://localhost:8083}
           predicates:
             - Path=/api/v1/donaciones/**
           filters:
@@ -50,7 +50,7 @@ spring:
 
         # 4. RUTA DE LOGISTICA
         - id: ms-logistica-route
-          uri: http://localhost:8084
+          uri: ${URL_MS_LOGISTICA:http://localhost:8084}
           predicates:
             - Path=/api/v1/logistica/**
           filters:

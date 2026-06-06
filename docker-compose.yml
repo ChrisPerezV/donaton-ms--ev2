@@ -1,78 +1,117 @@
 version: '3.8'
 
-services:
+networks:
+  donaton-net:
+    driver: bridge
 
-  # ─────────────────────────────────────────────
-  # API Gateway  (listo para Docker)
-  # ─────────────────────────────────────────────
+volumes:
+  mysql_data:
+
+services:
+  # 1. BASE DE DATOS
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-microservicios
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: donaton_user
+      MYSQL_PASSWORD: donaton_password
+      TZ: America/Santiago
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./donaton-infra/mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - donaton-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. MS USUARIOS
+  ms-usuarios:
+    build:
+      context: ./ms-usuarios
+    container_name: ms-usuarios
+    ports:
+      - "8085:8085"
+    networks:
+      - donaton-net
+    environment:
+      # Sobrescribimos la URL de la BD para que apunte al contenedor 'mysql-db'
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_usuarios?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  # 3. MS NECESIDADES
+  ms-necesidades:
+    build:
+      context: ./ms-necesidades
+    container_name: ms-necesidades
+    ports:
+      - "8082:8082"
+    networks:
+      - donaton-net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_necesidades?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
+      - URL_MS_USUARIOS=http://ms-usuarios:8085 # Inyectamos URL para Feign
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  # 4. MS LOGISTICA
+  ms-logistica:
+    build:
+      context: ./ms-logistica
+    container_name: ms-logistica
+    ports:
+      - "8084:8084"
+    networks:
+      - donaton-net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_logistica?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
+      - URL_MS_NECESIDADES=http://ms-necesidades:8082 # Inyectamos URL para Feign
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  # 5. MS DONACIONES
+  ms-donaciones:
+    build:
+      context: ./ms-donaciones
+    container_name: ms-donaciones
+    ports:
+      - "8083:8083"
+    networks:
+      - donaton-net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_donaciones?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
+      - URL_MS_LOGISTICA=http://ms-logistica:8084
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  # 6. API GATEWAY
   api-gateway:
     build:
       context: ./api-gateway
-      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "8080:8080"
     networks:
       - donaton-net
-    # Espera a que los microservicios estén sanos antes de arrancar
+    environment:
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
+      - URL_MS_NECESIDADES=http://ms-necesidades:8082
+      - URL_MS_DONACIONES=http://ms-donaciones:8083
+      - URL_MS_LOGISTICA=http://ms-logistica:8084
     depends_on:
-      ms-necesidades:
-        condition: service_started
-      ms-donaciones:
-        condition: service_started
-      ms-logistica:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
-
-  # ─────────────────────────────────────────────
-  # Microservicio: Necesidades  (agrega su Dockerfile cuando esté listo)
-  # ─────────────────────────────────────────────
-  ms-necesidades:
-    build:
-      context: ./ms-necesidades
-      dockerfile: Dockerfile        # Crea este archivo cuando dockerices ms-necesidades
-    container_name: ms-necesidades
-    expose:
-      - "8082"
-    networks:
-      - donaton-net
-    restart: unless-stopped
-
-  # ─────────────────────────────────────────────
-  # Microservicio: Donaciones
-  # ─────────────────────────────────────────────
-  ms-donaciones:
-    build:
-      context: ./ms-donaciones
-      dockerfile: Dockerfile
-    container_name: ms-donaciones
-    expose:
-      - "8083"
-    networks:
-      - donaton-net
-    restart: unless-stopped
-
-  # ─────────────────────────────────────────────
-  # Microservicio: Logística
-  # ─────────────────────────────────────────────
-  ms-logistica:
-    build:
-      context: ./ms-logistica
-      dockerfile: Dockerfile
-    container_name: ms-logistica
-    expose:
-      - "8084"
-    networks:
-      - donaton-net
-    restart: unless-stopped
-
-# Red interna compartida por todos los servicios
-networks:
-  donaton-net:
-    driver: bridge
+      - ms-usuarios
+      - ms-necesidades
+      - ms-logistica
+      - ms-donaciones
