@@ -117,5 +117,5 @@ jobs:
             cd ~/donaton
             
             # 4. Descargar imágenes nuevas de ECR y reiniciar (USANDO EL ARCHIVO PROD)
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
