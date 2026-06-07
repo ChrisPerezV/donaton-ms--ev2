@@ -81,7 +81,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
 
-  # 6. API GATEWAY
+# 6. API GATEWAY
   api-gateway:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-api-gateway:latest
     container_name: api-gateway-prod
@@ -93,6 +93,13 @@ services:
       - ms-logistica
       - ms-necesidades
       - ms-donaciones
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
+      # Redirección usando TUS puertos originales
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
+      - URL_MS_NECESIDADES=http://ms-necesidades:8082
+      - URL_MS_DONACIONES=http://ms-donaciones:8083
+      - URL_MS_LOGISTICA=http://ms-logistica:8084
 
 volumes:
   mysql_data_prod:
