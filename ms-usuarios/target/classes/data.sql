@@ -1,0 +1,3 @@
+INSERT IGNORE INTO usuario (id_usuario, documento_identidad, nombre_completo, email, password, rol, tipo_donante) VALUES
+('11111111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1', 'Admin General', 'admin@donaton.com', '$2a$10$XURPShQNCsLjp1ESc2laoObo9QZDhxz73hJPaEv7/cBha4pk0AgP.', 'ADMINISTRADOR', 'PERSONA_NATURAL'),
+('22222222-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-2', 'Juan Donante', 'juan@correo.com', '$2a$10$XURPShQNCsLjp1ESc2laoObo9QZDhxz73hJPaEv7/cBha4pk0AgP.', 'DONANTE', 'PERSONA_NATURAL');
