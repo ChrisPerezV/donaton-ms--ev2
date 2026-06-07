@@ -27,6 +27,7 @@ services:
     depends_on:
       - mysql-db
     environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_usuarios
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
@@ -42,6 +43,7 @@ services:
     depends_on:
       - mysql-db
     environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_logistica
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
@@ -57,6 +59,7 @@ services:
     depends_on:
       - mysql-db
     environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_necesidades
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
@@ -72,6 +75,7 @@ services:
     depends_on:
       - mysql-db
     environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_donaciones
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
