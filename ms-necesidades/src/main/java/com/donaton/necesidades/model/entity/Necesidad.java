@@ -1,5 +1,9 @@
 package com.donaton.necesidades.model.entity;
 
+import com.donaton.necesidades.model.enums.EstadoNecesidad;
+import com.donaton.necesidades.model.enums.EstadoRegistro;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,10 +36,13 @@ public class Necesidad {
     @Column(name = "direccion_especifica")
     private String direccionEspecifica;
 
-    private String estado = "ACTIVA";
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
+    private EstadoNecesidad estado;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado_registro")
-    private String estadoRegistro = "ACTIVO";
+    private EstadoRegistro estadoRegistro;
 
     @Column(name = "fecha_reporte", updatable = false)
     private LocalDateTime fechaReporte = LocalDateTime.now();

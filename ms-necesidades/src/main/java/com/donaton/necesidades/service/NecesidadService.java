@@ -5,6 +5,8 @@ import com.donaton.necesidades.dto.ItemNecesidadRequest;
 import com.donaton.necesidades.dto.NecesidadRequest;
 import com.donaton.necesidades.model.entity.ItemNecesidad;
 import com.donaton.necesidades.model.entity.Necesidad;
+import com.donaton.necesidades.model.enums.EstadoNecesidad;
+import com.donaton.necesidades.model.enums.EstadoRegistro;
 import com.donaton.necesidades.repository.NecesidadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,10 @@ public class NecesidadService {
         necesidad.setIdComuna(request.getIdComuna());
         necesidad.setDireccionEspecifica(request.getDireccionEspecifica());
 
+        // Al crearla, le asignamos valores Enum por defecto
+        necesidad.setEstado(EstadoNecesidad.ACTIVA);
+        necesidad.setEstadoRegistro(EstadoRegistro.ACTIVO);
+
         for (ItemNecesidadRequest itemDto : request.getItems()) {
             ItemNecesidad item = new ItemNecesidad();
             item.setCategoria(itemDto.getCategoria());
@@ -65,8 +71,13 @@ public class NecesidadService {
     public Necesidad actualizarEstado(String id, String nuevoEstado) {
         Necesidad necesidad = obtenerPorId(id);
 
-        // Agregamos toUpperCase() para mantener consistencia en la BD
-        necesidad.setEstado(nuevoEstado.toUpperCase());
+        try {
+            // Convertimos el String que llega a tu nuevo Enum
+            EstadoNecesidad estadoEnum = EstadoNecesidad.valueOf(nuevoEstado.toUpperCase());
+            necesidad.setEstado(estadoEnum);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("El estado proporcionado no es válido. Usa: ACTIVA, EN_PROCESO, RESUELTA o CANCELADA.");
+        }
 
         return repository.save(necesidad);
     }
@@ -74,7 +85,10 @@ public class NecesidadService {
     // Eliminar (Borrado lógico)
     public void eliminarNecesidad(String id) {
         Necesidad necesidad = obtenerPorId(id);
-        necesidad.setEstadoRegistro("ELIMINADO");
+
+        // Usamos el Enum INACTIVO en lugar del String "ELIMINADO"
+        necesidad.setEstadoRegistro(EstadoRegistro.INACTIVO);
+
         repository.save(necesidad);
     }
 }
