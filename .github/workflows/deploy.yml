@@ -76,6 +76,9 @@ jobs:
     needs: build-push-ecr
     runs-on: ubuntu-latest
     steps:
+      - name: Descargar el código en este Job
+        uses: actions/checkout@v4
+
       - name: Copiar docker-compose a la EC2
         uses: appleboy/scp-action@master
         with:
