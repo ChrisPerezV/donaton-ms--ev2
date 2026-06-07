@@ -26,8 +26,12 @@ jobs:
           distribution: 'temurin'
 
       - name: 3. Compilar Microservicios con Maven
-        # Al tener un pom.xml en la raíz, este único comando compila TODOS los microservicios
-        run: mvn clean package -DskipTests
+        run: |
+          mvn clean package -DskipTests -f ms-usuarios/pom.xml
+          mvn clean package -DskipTests -f ms-logistica/pom.xml
+          mvn clean package -DskipTests -f ms-necesidades/pom.xml
+          mvn clean package -DskipTests -f ms-donaciones/pom.xml
+          mvn clean package -DskipTests -f api-gateway/pom.xml
 
       - name: 4. Configurar Credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
