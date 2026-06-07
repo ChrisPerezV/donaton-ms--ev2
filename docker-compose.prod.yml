@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # 1. BASE DE DATOS
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-prod
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=donaton_user
+      - MYSQL_PASSWORD=donaton_password
+      - TZ=America/Santiago
+    volumes:
+      - mysql_data_prod:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+  # 2. MICROSERVICIO USUARIOS
+  ms-usuarios:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-ms-usuarios:latest
+    container_name: ms-usuarios-prod
+    restart: always
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_usuarios
+      - SPRING_DATASOURCE_USERNAME=donaton_user
+      - SPRING_DATASOURCE_PASSWORD=donaton_password
+      - TZ=America/Santiago
+
+  # 3. MICROSERVICIO LOGÍSTICA
+  ms-logistica:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-ms-logistica:latest
+    container_name: ms-logistica-prod
+    restart: always
+    ports:
+      - "8084:8084" 
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_logistica
+      - SPRING_DATASOURCE_USERNAME=donaton_user
+      - SPRING_DATASOURCE_PASSWORD=donaton_password
+      - TZ=America/Santiago
+
+  # 4. MICROSERVICIO NECESIDADES
+  ms-necesidades:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-ms-necesidades:latest
+    container_name: ms-necesidades-prod
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_necesidades
+      - SPRING_DATASOURCE_USERNAME=donaton_user
+      - SPRING_DATASOURCE_PASSWORD=donaton_password
+      - TZ=America/Santiago
+
+  # 5. MICROSERVICIO DONACIONES
+  ms-donaciones:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-ms-donaciones:latest
+    container_name: ms-donaciones-prod
+    restart: always
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_donaciones
+      - SPRING_DATASOURCE_USERNAME=donaton_user
+      - SPRING_DATASOURCE_PASSWORD=donaton_password
+      - TZ=America/Santiago
+
+  # 6. API GATEWAY
+  api-gateway:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-api-gateway:latest
+    container_name: api-gateway-prod
+    restart: always
+    ports:
+      - "8080:8080" 
+    depends_on:
+      - ms-usuarios
+      - ms-logistica
+      - ms-necesidades
+      - ms-donaciones
+
+volumes:
+  mysql_data_prod:

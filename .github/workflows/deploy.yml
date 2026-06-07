@@ -1,0 +1,115 @@
+name: CI/CD Pipeline AWS
+
+on:
+  push:
+    branches: [ "main" ] # Se dispara al subir código a la rama main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+
+  # I. COMPILAR Y SUBIR IMÁGENES A ECR
+
+  build-push-ecr:
+    name: Construir y Subir a ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar el código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: 3. Compilar Microservicios con Maven
+        # run: mvn clean package -DskipTests
+        run: |
+           mvn clean package -DskipTests -f ms-usuarios/pom.xml
+           mvn clean package -DskipTests -f ms-logistica/pom.xml
+           mvn clean package -DskipTests -f ms-necesidades/pom.xml
+           mvn clean package -DskipTests -f ms-donaciones/pom.xml
+
+      - name: 4. Configurar Credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 5. Iniciar sesión en Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 6. Construir y Subir Imágenes Docker
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          TAG: latest
+        run: |
+          # 1. Microservicio Usuarios
+          docker build -t $REGISTRY/donaton-ms-usuarios:$TAG ./ms-usuarios
+          docker push $REGISTRY/donaton-ms-usuarios:$TAG
+          
+          # 2. Microservicio Logística
+          docker build -t $REGISTRY/donaton-ms-logistica:$TAG ./ms-logistica
+          docker push $REGISTRY/donaton-ms-logistica:$TAG
+          
+          # 3. Microservicio Necesidades
+          docker build -t $REGISTRY/donaton-ms-necesidades:$TAG ./ms-necesidades
+          docker push $REGISTRY/donaton-ms-necesidades:$TAG
+
+          # 4. Microservicio Donaciones
+          docker build -t $REGISTRY/donaton-ms-donaciones:$TAG ./ms-donaciones
+          docker push $REGISTRY/donaton-ms-donaciones:$TAG
+          
+          # 5. API GATEWAY
+          docker build -t $REGISTRY/donaton-api-gateway:$TAG ./api-gateway
+          docker push $REGISTRY/donaton-api-gateway:$TAG
+
+
+  # II. DESPLEGAR EN EL SERVIDOR EC2
+  deploy-ec2:
+    name: Desplegar en Instancia EC2
+    needs: build-push-ecr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copiar docker-compose a la EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml,mysql-init/"
+          target: "~/donaton/"
+
+      - name: Ejecutar comandos vía SSH en EC2
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, AWS_REGION, AWS_ACCOUNT_ID
+          script: |
+            # 1. Exportar credenciales temporales en la terminal del EC2
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+            
+            # 2. Iniciar sesión de Docker con ECR dentro del EC2
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            
+            # 3. Moverse a la carpeta del proyecto en el servidor
+            cd ~/donaton
+            
+            # 4. Descargar imágenes nuevas de ECR y reiniciar
+            docker-compose pull
+            docker-compose up -d
