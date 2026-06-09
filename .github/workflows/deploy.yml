@@ -70,28 +70,34 @@ jobs:
           docker build -t $REGISTRY/donaton-api-gateway:$TAG ./api-gateway
           docker push $REGISTRY/donaton-api-gateway:$TAG
 
-
+# ==========================================
+  # II. DESPLEGAR EN LA EC2 PRIVADA (VÍA BASTIÓN)
   # ==========================================
-  # II. DESPLEGAR EN EL SERVIDOR EC2
-  # ==========================================
-  deploy-ec2:
-    name: Desplegar en Instancia EC2
+  deploy-ec2-private:
+    name: Desplegar en EC2 Privada
     needs: build-push-ecr
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar el código en este Job
+      - name: Descargar el código
         uses: actions/checkout@v4
 
-      - name: Copiar docker-compose y scripts a la EC2
+      - name: Copiar archivos a la EC2 Privada a través del Bastión
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          # 1. Datos del Bastión (El guardia de entrada)
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_username: ${{ secrets.EC2_USERNAME }}
+          proxy_key: ${{ secrets.EC2_SSH_KEY }} # Tu llave .pem
+          
+          # 2. Datos de la máquina destino (La privada)
+          host: ${{ secrets.PRIVATE_EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }} # Usa la llave correspondiente a la máquina privada
+          
           source: "docker-compose.prod.yml,mysql-init/"
           target: "~/donaton/"
 
-      - name: Ejecutar comandos vía SSH en EC2
+      - name: Ejecutar comandos en la EC2 Privada a través del Bastión
         uses: appleboy/ssh-action@v1.0.3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -100,22 +106,24 @@ jobs:
           AWS_REGION: ${{ env.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         with:
-          host: ${{ secrets.EC2_HOST }}
+          # 1. Datos del Bastión
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_username: ${{ secrets.EC2_USERNAME }}
+          proxy_key: ${{ secrets.EC2_SSH_KEY }}
+          
+          # 2. Datos de la máquina destino
+          host: ${{ secrets.PRIVATE_EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, AWS_REGION, AWS_ACCOUNT_ID
           script: |
-            # 1. Exportar credenciales temporales en la terminal del EC2
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
             
-            # 2. Iniciar sesión de Docker con ECR dentro del EC2
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
             
-            # 3. Moverse a la carpeta del proyecto en el servidor
             cd ~/donaton
-            
-            # 4. Descargar imágenes nuevas de ECR y reiniciar (USANDO EL ARCHIVO PROD)
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
