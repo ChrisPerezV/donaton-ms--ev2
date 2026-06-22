@@ -120,4 +120,4 @@ jobs:
             
             cd ~/donaton
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d
+            docker stack deploy -c docker-compose.prod.yml donaton
