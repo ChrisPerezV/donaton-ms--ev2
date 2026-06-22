@@ -64,6 +64,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
+      # NOTA: Si usas FeignClient aquí para consultar a Usuarios, recuerda agregar:
+      # - URL_MS_USUARIOS=http://ms-usuarios:8085
 
   # 5. MICROSERVICIO DONACIONES
   ms-donaciones:
@@ -81,7 +83,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
 
-# 6. API GATEWAY
+  # 6. API GATEWAY
   api-gateway:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-api-gateway:latest
     container_name: api-gateway-prod
@@ -95,7 +97,6 @@ services:
       - ms-donaciones
     environment:
       - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m
-      # Redirección usando TUS puertos originales
       - URL_MS_USUARIOS=http://ms-usuarios:8085
       - URL_MS_NECESIDADES=http://ms-necesidades:8082
       - URL_MS_DONACIONES=http://ms-donaciones:8083

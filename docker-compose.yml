@@ -2,7 +2,7 @@ version: '3.8'
 
 networks:
   donaton-net:
-    driver: bridge
+    driver: overlay
 
 volumes:
   mysql_data:
@@ -11,8 +11,6 @@ services:
   # 1. BASE DE DATOS
   mysql-db:
     image: mysql:8.0
-    container_name: mysql-microservicios
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: donaton_user
@@ -30,60 +28,118 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s
 
   # 2. MS USUARIOS
   ms-usuarios:
+    image: donaton-ms-usuarios:latest
     build:
       context: ./ms-usuarios
-    container_name: ms-usuarios
     ports:
       - "8085:8085"
     networks:
       - donaton-net
     environment:
-      # Sobrescribimos la URL de la BD para que apunte al contenedor 'mysql-db'
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_usuarios?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-db
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s
 
   # 3. MS NECESIDADES
   ms-necesidades:
+    image: donaton-ms-necesidades:latest
     build:
       context: ./ms-necesidades
-    container_name: ms-necesidades
     ports:
       - "8082:8082"
     networks:
       - donaton-net
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_necesidades?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
-      - URL_MS_USUARIOS=http://ms-usuarios:8085 # Inyectamos URL para Feign
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-db
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s
 
   # 4. MS LOGISTICA
   ms-logistica:
+    image: donaton-ms-logistica:latest
     build:
       context: ./ms-logistica
-    container_name: ms-logistica
     ports:
       - "8084:8084"
     networks:
       - donaton-net
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_logistica?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
-      - URL_MS_NECESIDADES=http://ms-necesidades:8082 # Inyectamos URL para Feign
+      - URL_MS_NECESIDADES=http://ms-necesidades:8082
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
     depends_on:
-      mysql-db:
-        condition: service_healthy
-
+      - mysql-db
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s
   # 5. MS DONACIONES
   ms-donaciones:
+    image: donaton-ms-donaciones:latest
     build:
       context: ./ms-donaciones
-    container_name: ms-donaciones
     ports:
       - "8083:8083"
     networks:
@@ -92,15 +148,32 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_donaciones?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Santiago
       - URL_MS_USUARIOS=http://ms-usuarios:8085
       - URL_MS_LOGISTICA=http://ms-logistica:8084
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
     depends_on:
-      mysql-db:
-        condition: service_healthy
+      - mysql-db
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s
 
   # 6. API GATEWAY
   api-gateway:
+    image: donaton-api-gateway:latest
     build:
       context: ./api-gateway
-    container_name: api-gateway
     ports:
       - "8080:8080"
     networks:
@@ -115,3 +188,20 @@ services:
       - ms-necesidades
       - ms-logistica
       - ms-donaciones
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s

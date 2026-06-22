@@ -1,30 +1,38 @@
 package com.donaton.donaciones.service;
 
-import com.donaton.donaciones.client.LogisticaClient;
 import com.donaton.donaciones.client.UsuariosClient;
 import com.donaton.donaciones.dto.DonacionRequest;
-import com.donaton.donaciones.dto.InventarioCargaRequest;
 import com.donaton.donaciones.dto.ItemDonacionRequest;
 import com.donaton.donaciones.model.entity.Donacion;
 import com.donaton.donaciones.model.entity.ItemDonacion;
 import com.donaton.donaciones.model.enums.UnidadMedida;
 import com.donaton.donaciones.repository.DonacionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class DonacionService {
 
-    // Eliminé la inyección duplicada. Solo necesitas uno.
     @Autowired
     private DonacionRepository repository;
 
     @Autowired
-    private LogisticaClient logisticaClient;
+    private UsuariosClient usuariosClient;
 
     @Autowired
-    private UsuariosClient usuariosClient;
+    private SqsTemplate sqsTemplate;
+
+
+    @Value("${donaton.sqs.cola-donaciones}")
+    private String nombreCola;
+    @Value("${donaton.sqs.cola-alertas}")
+    private String nombreColaAlertas;
 
     public Donacion crearConItems(DonacionRequest request) {
         try {
@@ -37,44 +45,39 @@ public class DonacionService {
         Donacion donacion = new Donacion();
         donacion.setIdDonante(request.getIdDonante());
         donacion.setTipoDonacion(request.getTipoDonacion());
-
-        // --- ¡AQUÍ ESTABA EL ESLABÓN PERDIDO! ---
-        // Debes guardar el ID del centro en tu entidad para que se guarde en PostgreSQL
         donacion.setIdCentroAcopio(request.getIdCentroAcopio());
-        // -----------------------------------------
 
         for (ItemDonacionRequest itemDto : request.getItems()) {
             ItemDonacion item = new ItemDonacion();
             item.setCategoria(itemDto.getCategoria());
             item.setDescripcionItem(itemDto.getDescripcionItem());
             item.setCantidad(itemDto.getCantidad());
-
-            // Asignamos el Enum (o UNIDADES por defecto) limpio
             item.setUnidadMedida(itemDto.getUnidadMedida() != null ? itemDto.getUnidadMedida() : UnidadMedida.UNIDADES);
 
             donacion.agregarItem(item);
         }
 
-        // 1. Guardamos la donación en la base de datos local
         Donacion donacionGuardada = repository.save(donacion);
 
-        // 2. Enviamos los ítems a ms-logistica (Centro de Acopio)
         if (request.getIdCentroAcopio() != null && !request.getIdCentroAcopio().trim().isEmpty()) {
-            for (ItemDonacion item : donacionGuardada.getItems()) {
-                InventarioCargaRequest carga = new InventarioCargaRequest();
-                carga.setCategoria(item.getCategoria().name());
-                carga.setCantidad(item.getCantidad());
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.registerModule(new JavaTimeModule());
 
-                // Extraemos el nombre del Enum para mandarlo a Logística
-                carga.setUnidadMedida(item.getUnidadMedida().name());
-                carga.setIdCentro(request.getIdCentroAcopio());
+                String donacionJsonPuro = mapper.writeValueAsString(donacionGuardada);
 
-                try {
-                    logisticaClient.cargarInventario(carga);
-                    System.out.println("Ítem enviado exitosamente a la bodega: " + carga.getCategoria());
-                } catch (Exception e) {
-                    System.err.println("Error sumando stock en ms-logistica: " + e.getMessage());
+                sqsTemplate.send(nombreCola, donacionJsonPuro);
+                boolean requiereAlerta = request.getItems().stream()
+                        .anyMatch(item -> item.getCategoria().name().equals("MEDICAMENTO"));
+
+                if (requiereAlerta) {
+                    sqsTemplate.send(nombreColaAlertas, donacionJsonPuro);
+                    System.out.println("Evento crítico enviado a la cola de Serverless SQS.");
                 }
+
+                System.out.println("Evento enviado a SQS exitosamente. ID Donación: " + donacionGuardada.getId());
+            } catch (Exception e) {
+                System.err.println("Error enviando el mensaje a AWS SQS: " + e.getMessage());
             }
         }
 
@@ -86,7 +89,6 @@ public class DonacionService {
     }
 
     public List<Donacion> obtenerDonacionesPorDonante(String idDonante) {
-        // Usamos la misma instancia de repository aquí
         return repository.findByIdDonante(idDonante);
     }
 }
