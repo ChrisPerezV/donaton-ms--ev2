@@ -2,16 +2,12 @@ name: CI/CD Pipeline AWS (Completo Fases 3 y 4)
 
 on:
   push:
-    branches: [ "main" ] # Se dispara al subir código a la rama main
+    branches: [ "main" ]
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
-
-  # ==========================================
-  # I. COMPILAR, PREPARAR NUBE Y SUBIR A ECR
-  # ==========================================
   build-push-ecr:
     name: Construir y Subir a ECR
     runs-on: ubuntu-latest
@@ -41,8 +37,6 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # --- NUEVAS ETAPAS PARA CUMPLIR LA RÚBRICA ---
-      
       - name: 4.1 Infraestructura como Código (IE5 - SQS)
         run: |
           echo "Asegurando que las colas de mensajería existan en AWS..."
@@ -55,10 +49,7 @@ jobs:
           cd serverless-alerts
           chmod +x build.sh
           ./build.sh
-          # Nota: Si la función aún no está creada a mano en AWS, este paso avisará sin detener el pipeline
-          aws lambda update-function-code --function-name lambda-alertas --zip-file fileb://lambda-alertas.zip || echo "⚠️ Recuerda crear la función 'lambda-alertas' en la consola de AWS para que se actualice el código."
-          
-      # ---------------------------------------------
+          aws lambda update-function-code --function-name lambda-alertas --zip-file fileb://lambda-alertas.zip || echo "⚠️ Recuerda crear la función 'lambda-alertas' en AWS."
 
       - name: 5. Iniciar sesión en Amazon ECR
         id: login-ecr
@@ -69,30 +60,21 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           TAG: latest
         run: |
-          # 1. Microservicio Usuarios
           docker build -t $REGISTRY/donaton-ms-usuarios:$TAG ./ms-usuarios
           docker push $REGISTRY/donaton-ms-usuarios:$TAG
           
-          # 2. Microservicio Logística
           docker build -t $REGISTRY/donaton-ms-logistica:$TAG ./ms-logistica
           docker push $REGISTRY/donaton-ms-logistica:$TAG
           
-          # 3. Microservicio Necesidades
           docker build -t $REGISTRY/donaton-ms-necesidades:$TAG ./ms-necesidades
           docker push $REGISTRY/donaton-ms-necesidades:$TAG
 
-          # 4. Microservicio Donaciones
           docker build -t $REGISTRY/donaton-ms-donaciones:$TAG ./ms-donaciones
           docker push $REGISTRY/donaton-ms-donaciones:$TAG
           
-          # 5. API GATEWAY
           docker build -t $REGISTRY/donaton-api-gateway:$TAG ./api-gateway
           docker push $REGISTRY/donaton-api-gateway:$TAG
 
-
-  # ==========================================
-  # II. DESPLEGAR EN EL SERVIDOR EC2
-  # ==========================================
   deploy-ec2-private:
     name: Desplegar en EC2 Privada
     needs: build-push-ecr
@@ -104,13 +86,16 @@ jobs:
       - name: Copiar archivos a la EC2 Privada a través del Bastión
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_username: ${{ secrets.EC2_USERNAME }}
+          proxy_key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.PRIVATE_EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.prod.yml,mysql-init/"
           target: "~/donaton/"
 
-      - name: Ejecutar comandos vía SSH en EC2
+      - name: Ejecutar comandos en la EC2 Privada a través del Bastión (IE6)
         uses: appleboy/ssh-action@v1.0.3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -119,26 +104,20 @@ jobs:
           AWS_REGION: ${{ env.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         with:
-          # 1. Datos del Bastión
           proxy_host: ${{ secrets.BASTION_HOST }}
           proxy_username: ${{ secrets.EC2_USERNAME }}
           proxy_key: ${{ secrets.EC2_SSH_KEY }}
-          
-          # 2. Datos de la máquina destino
           host: ${{ secrets.PRIVATE_EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          
           envs: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, AWS_REGION, AWS_ACCOUNT_ID
           script: |
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
             
-            # 2. Iniciar sesión de Docker con ECR dentro del EC2
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
             
-            # 3. Moverse a la carpeta del proyecto en el servidor
             cd ~/donaton
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
