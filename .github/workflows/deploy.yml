@@ -1,4 +1,4 @@
-name: CI/CD Pipeline AWS (Completo Fases 3 y 4)
+name: CI/CD Pipeline AWS
 
 on:
   push:
