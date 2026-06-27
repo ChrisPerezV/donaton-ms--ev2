@@ -64,6 +64,10 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/db_necesidades
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - TZ=America/Santiago
       - URL_MS_USUARIOS=http://ms-usuarios:8085
 
@@ -82,9 +86,13 @@ services:
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
+      # NUEVO: Le enseñamos dónde está ms-usuarios y logística (por si acaso)
       - URL_MS_USUARIOS=http://ms-usuarios:8085
       - URL_MS_LOGISTICA=http://ms-logistica:8084
-
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
   # 6. API GATEWAY
   api-gateway:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-api-gateway:latest
