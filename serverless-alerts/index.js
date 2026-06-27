@@ -22,7 +22,7 @@ exports.handler = async (event) => {
                 console.log("Simulando envío de correo a logistica@donaton.org");
                 console.log("=========================================");
             } else {
-                console.log(`Donación procesada. No contiene ítems críticos. Se omite alerta.`);
+                console.log(`Donación procesada. No contiene ítems críticos. Se omite alerta`);
             }
 
         } catch (error) {
