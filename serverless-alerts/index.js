@@ -9,7 +9,7 @@ exports.handler = async (event) => {
             console.log(`Analizando donación..... ID: ${donacion.id}`);
 
             donacion.items.forEach(item => {
-                if (item.categoria === 'AGUA' || item.categoria === 'MEDICAMENTO' || item.categoria === 'ALIMENTO_NO_PERECIBLE') {
+                if (item.categoria === 'MEDICAMENTOS') {
                     requiereAlerta = true;
                 }
             });
