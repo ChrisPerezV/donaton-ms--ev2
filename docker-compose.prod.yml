@@ -55,7 +55,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 
-  # 4. MICROSERVICIO NECESIDADES
+  # 4. MICROSERVICIO NECESIDADES.
   ms-necesidades:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/donaton-ms-necesidades:latest
     container_name: ms-necesidades-prod
