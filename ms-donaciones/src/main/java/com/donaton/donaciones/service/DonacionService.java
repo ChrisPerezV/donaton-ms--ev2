@@ -68,7 +68,7 @@ public class DonacionService {
 
                 sqsTemplate.send(nombreCola, donacionJsonPuro);
                 boolean requiereAlerta = request.getItems().stream()
-                        .anyMatch(item -> item.getCategoria().name().equals("MEDICAMENTO"));
+                        .anyMatch(item -> item.getCategoria().name().equals("MEDICAMENTOS"));
 
                 if (requiereAlerta) {
                     sqsTemplate.send(nombreColaAlertas, donacionJsonPuro);
