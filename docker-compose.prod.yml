@@ -48,6 +48,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
+      - URL_MS_NECESIDADES=http://ms-necesidades:8082
 
   # 4. MICROSERVICIO NECESIDADES
   ms-necesidades:
@@ -64,8 +65,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
-      # NOTA: Si usas FeignClient aquí para consultar a Usuarios, recuerda agregar:
-      # - URL_MS_USUARIOS=http://ms-usuarios:8085
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
 
   # 5. MICROSERVICIO DONACIONES
   ms-donaciones:
@@ -82,6 +82,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=donaton_user
       - SPRING_DATASOURCE_PASSWORD=donaton_password
       - TZ=America/Santiago
+      - URL_MS_USUARIOS=http://ms-usuarios:8085
+      - URL_MS_LOGISTICA=http://ms-logistica:8084
 
   # 6. API GATEWAY
   api-gateway:
