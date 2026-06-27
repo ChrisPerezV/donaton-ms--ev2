@@ -22,7 +22,7 @@ public class NecesidadService {
     @Autowired
     private UsuariosClient usuariosClient;
 
-    // Crear Necesidad con Ítems (Mapeo de DTO a Entidad)
+    // Crear Necesidad con Ítems (Mapeo de DTO a Entidad))
     public Necesidad crearConItems(NecesidadRequest request) {
         try {
             usuariosClient.obtenerUsuarioPorId(request.getIdUsuarioCreador());
