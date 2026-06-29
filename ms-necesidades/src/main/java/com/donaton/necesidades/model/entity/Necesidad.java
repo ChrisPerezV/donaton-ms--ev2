@@ -51,7 +51,6 @@ public class Necesidad {
     @JsonManagedReference
     private List<ItemNecesidad> items = new ArrayList<>();
 
-    // Método de conveniencia profesional para mantener ambas partes sincronizadas
     public void agregarItem(ItemNecesidad item) {
         items.add(item);
         item.setNecesidad(this);

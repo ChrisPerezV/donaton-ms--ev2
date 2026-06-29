@@ -22,7 +22,7 @@ public class NecesidadService {
     @Autowired
     private UsuariosClient usuariosClient;
 
-    // Crear Necesidad con Ítems (Mapeo de DTO a Entidad))
+    // Crear Necesidad
     public Necesidad crearConItems(NecesidadRequest request) {
         try {
             usuariosClient.obtenerUsuarioPorId(request.getIdUsuarioCreador());
@@ -31,14 +31,12 @@ public class NecesidadService {
             throw new RuntimeException("Error: El usuario creador (ID: " + request.getIdUsuarioCreador() + ") no existe en el sistema.");
         }
 
-        // Se unificó la creación de la entidad Necesidad
         Necesidad necesidad = new Necesidad();
         necesidad.setIdUsuarioCreador(request.getIdUsuarioCreador());
         necesidad.setTituloEmergencia(request.getTituloEmergencia());
         necesidad.setIdComuna(request.getIdComuna());
         necesidad.setDireccionEspecifica(request.getDireccionEspecifica());
 
-        // Al crearla, le asignamos valores Enum por defecto
         necesidad.setEstado(EstadoNecesidad.ACTIVA);
         necesidad.setEstadoRegistro(EstadoRegistro.ACTIVO);
 
@@ -86,7 +84,6 @@ public class NecesidadService {
     public void eliminarNecesidad(String id) {
         Necesidad necesidad = obtenerPorId(id);
 
-        // Usamos el Enum INACTIVO en lugar del String "ELIMINADO"
         necesidad.setEstadoRegistro(EstadoRegistro.INACTIVO);
 
         repository.save(necesidad);

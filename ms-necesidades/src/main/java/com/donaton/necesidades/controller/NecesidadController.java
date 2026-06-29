@@ -18,7 +18,7 @@ public class NecesidadController {
     @Autowired
     private NecesidadService necesidadService;
 
-    // Crear una necesidad con todos sus ítems de una sola vez
+    // Crear una necesidad
     @PostMapping
     public ResponseEntity<Necesidad> crearNecesidad(@Valid @RequestBody NecesidadRequest request) {
         Necesidad nuevaNecesidad = necesidadService.crearConItems(request);
@@ -31,13 +31,13 @@ public class NecesidadController {
         return ResponseEntity.ok(necesidadService.obtenerTodas());
     }
 
-    // Obtener una necesidad específica por su ID (traerá sus ítems automáticamente)
+    // Obtener una necesidad por ID
     @GetMapping("/{id}")
     public ResponseEntity<Necesidad> obtenerPorId(@PathVariable String id) {
         return ResponseEntity.ok(necesidadService.obtenerPorId(id));
     }
 
-    // Cambiar el estado de la emergencia (ej: de ACTIVA a CUBIERTA)
+    // Cambiar el estado de la emergencia
     @PutMapping("/{id}/estado")
     public ResponseEntity<Necesidad> cambiarEstado(@PathVariable String id, @RequestParam String nuevoEstado) {
         return ResponseEntity.ok(necesidadService.actualizarEstado(id, nuevoEstado));
